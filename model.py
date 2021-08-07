@@ -2,11 +2,12 @@ r'''
 Author       : PiKaChu_wcg
 Date         : 2021-08-03 21:46:13
 LastEditors  : PiKachu_wcg
-LastEditTime : 2021-08-07 01:22:00
-FilePath     : \mysolve\model.py
+LastEditTime : 2021-08-08 00:44:13
+FilePath     : \ifly\model.py
 '''
 
 
+from typing import List
 from torch.nn.modules.linear import Linear
 from transformers import GPT2LMHeadModel, GPT2Config
 import torch
@@ -14,7 +15,7 @@ import torch.nn as nn
 from torch.nn import functional as F
 
 class Net(nn.Module):
-    def __init__(self,model_path,output_features,clip=1e-1):
+    def __init__(self,model_path,output_features:List):
         """这是使用cpm作为预训练的GTP2模型,其中model是transformer块,再用最后的结果经过一个线性神经网络得到我们要的分类
 
         Args:
@@ -25,21 +26,22 @@ class Net(nn.Module):
         """
         super(Net,self).__init__()
         self.output_features=output_features
-        self.clip=clip
         self.model=torch.load(model_path)
+        self.all_feature_out=sum(self.output_features)
         self.linear=nn.Sequential(
-            nn.Linear(768,(output_features+2*768)),
+            nn.Linear(768,(self.all_feature_out+768)),
             nn.ReLU(),
-            nn.Linear((2*output_features+768),3*output_features),
+            nn.Linear((self.all_feature_out+768),2*self.all_feature_out),
             nn.ReLU(),
-            nn.Linear((2*output_features+768),3*output_features),
             )
+        self.fc=[]
+        for i in output_features:
+            self.fc.append(nn.Linear(2*self.all_feature_out,i))
     def forward(self,x):
         x=self.model(x)[0][...,-1,:]
         x=self.linear(x)
-        x=x.view(*x.shape[:-1],3,self.output_features)
-        x=F.softmax(x,dim=-1)
-        return x/x.max(dim=-1).values.view(*x.shape[:-1],1)*(1-2*self.clip)+self.clip
+        x=[f(x) for f in self.fc ]
+        return x
     def change_param_state(self,net:str="backbone",is_freeze:bool=True):
         """冻结神经网络的指定参数
 
@@ -57,8 +59,9 @@ class Net(nn.Module):
                 param.requires_grad= not is_freeze
         
 if __name__=='__main__':
-    model=Net(config_path="mysolve/config/model_config.json",
-        model_path='mysolve\pytorch_model.bin',
-        output_features=1024
+    model=Net(
+        model_path='model/GPT2_transformer.pth',
+        output_features=[2,2,4,3]
     )
     output=model(torch.tensor([[1,2,3,4]]))
+    print(output)
