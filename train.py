@@ -2,8 +2,8 @@ r'''
 Author       : PiKaChu_wcg
 Date         : 2021-08-04 21:46:14
 LastEditors  : PiKachu_wcg
-LastEditTime : 2021-08-07 18:39:53
-FilePath     : \undefinedc:\VScode\deep_learning\GPT\ifly\mysolve\train.py
+LastEditTime : 2021-08-07 01:16:56
+FilePath     : \mysolve\train.py
 '''
 from tensorboardX import SummaryWriter
 from preprocess import preprocess
@@ -17,6 +17,7 @@ batch_size=2
 features_num=1295
 data_path='data/train_data.csv'
 vocab_path='vocab/vocab.txt'
+config_path="config/model_config.json"
 model_path='model/GPT2_transformer.pth'
 clip=1e-1
 epoche=10
@@ -32,6 +33,7 @@ dataloader=preprocess(
 )
 
 model=Net(
+    config_path=config_path,
     model_path=model_path,
     output_features=features_num
 )
