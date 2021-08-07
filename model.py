@@ -2,7 +2,7 @@ r'''
 Author       : PiKaChu_wcg
 Date         : 2021-08-03 21:46:13
 LastEditors  : PiKachu_wcg
-LastEditTime : 2021-08-08 00:44:13
+LastEditTime : 2021-08-08 01:34:06
 FilePath     : \ifly\model.py
 '''
 
@@ -29,18 +29,15 @@ class Net(nn.Module):
         self.model=torch.load(model_path)
         self.all_feature_out=sum(self.output_features)
         self.linear=nn.Sequential(
-            nn.Linear(768,(self.all_feature_out+768)),
+            nn.Linear(768,(self.all_feature_out+758)//2),
             nn.ReLU(),
-            nn.Linear((self.all_feature_out+768),2*self.all_feature_out),
+            nn.Linear((self.all_feature_out+758)//2,self.all_feature_out),
             nn.ReLU(),
+            nn.Linear(self.all_feature_out,self.all_feature_out)
             )
-        self.fc=[]
-        for i in output_features:
-            self.fc.append(nn.Linear(2*self.all_feature_out,i))
     def forward(self,x):
         x=self.model(x)[0][...,-1,:]
         x=self.linear(x)
-        x=[f(x) for f in self.fc ]
         return x
     def change_param_state(self,net:str="backbone",is_freeze:bool=True):
         """冻结神经网络的指定参数
@@ -52,16 +49,22 @@ class Net(nn.Module):
             for param in self.model.parameters():
                 param.requires_grad = not is_freeze
         if net=="linear":
-            for param in self.model.parameters():
+            for param in self.linear.parameters():
                 param.requires_grad = not is_freeze
         if net=='all':
             for param in self.parameters():
                 param.requires_grad= not is_freeze
+    def slice(self):
+        s=[0]
+        for i in self.output_features:
+            s.append(s[-1]+i)
+        return s
         
 if __name__=='__main__':
     model=Net(
         model_path='model/GPT2_transformer.pth',
         output_features=[2,2,4,3]
     )
+    model.slice()
     output=model(torch.tensor([[1,2,3,4]]))
     print(output)

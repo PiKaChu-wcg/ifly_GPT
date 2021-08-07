@@ -41,7 +41,7 @@ if use_gpu:
     model=model.cuda()
 model.change_param_state("model")
 
-optimizer = torch.optim.SGD(model.parameters(), lr=3e-5)
+optimizer = torch.optim.SGD(model.parameters(), lr=1e-3)
 for e in range(30,33):
     for batch,(line,pos,neg) in tqdm(enumerate(dataloader)):
         model.train()

@@ -2,7 +2,7 @@ r'''
 Author       : PiKaChu_wcg
 Date         : 2021-08-01 07:20:56
 LastEditors  : PiKachu_wcg
-LastEditTime : 2021-08-07 19:24:34
+LastEditTime : 2021-08-08 02:30:22
 FilePath     : \ifly\preprocess.py
 '''
 import torch
@@ -46,10 +46,12 @@ def preprocess(data_path=data_path,vocab_path=vocab_path,batch_size=2,q_level=3)
         lines=[line[0] for line in batch]
         t=[]
         for k in range(1,len(batch[0])):
-            t.append(torch.cat([i[k].view(1,*i[k].shape) for i in batch]))
+            t.append(torch.cat([i[k] for i in batch]))
         # print(f"lines:{line}")
         input_ids = rnn_utils.pad_sequence(lines, batch_first=True, padding_value=0)
-        return input_ids,*t
+
+        t.insert(0,input_ids)
+        return t
     dataloader=DataLoader(
         dataset, batch_size=batch_size, 
         shuffle=True, 
