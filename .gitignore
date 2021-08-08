@@ -1,3 +1,2 @@
-/model/
-mysolve/model/.bin
-mysolve/model/pytorch_model.bin
+model/*
+runs/*

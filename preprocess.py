@@ -2,7 +2,7 @@ r'''
 Author       : PiKaChu_wcg
 Date         : 2021-08-01 07:20:56
 LastEditors  : PiKachu_wcg
-LastEditTime : 2021-08-08 02:30:22
+LastEditTime : 2021-08-09 03:52:39
 FilePath     : \ifly\preprocess.py
 '''
 import torch
@@ -14,7 +14,7 @@ from torch.utils.data import DataLoader
 import torch.nn.utils.rnn as rnn_utils
 data_path="data/train_data.csv"
 vocab_path="vocab/vocab.txt"
-def preprocess(data_path=data_path,vocab_path=vocab_path,batch_size=2,q_level=3):
+def preprocess(data_path=data_path,vocab_path=vocab_path,batch_size=2,k_level=3):
     df=pd.read_csv(data_path)
     KD=KnowledgeDict(3,df)
     dict={}
@@ -39,8 +39,8 @@ def preprocess(data_path=data_path,vocab_path=vocab_path,batch_size=2,q_level=3)
             dict[item.TestQuestionID]={}
             dict[item.TestQuestionID]['line']=line
             dict[item.TestQuestionID]['q_Level']=item.q_Level-1
-        dict[item.TestQuestionID][item.k_Level]=KD.check_k(item.KnowledgeID)[1]
-    dataset=Question(dict,q_level) 
+        dict[item.TestQuestionID][item.k_Level]=KD.check_k(item.k_Level,item.KnowledgeID)
+    dataset=Question(dict,k_level) 
     def collate_fn(batch):
         # print("batch:{}".format(batch))
         lines=[line[0] for line in batch]
@@ -58,4 +58,4 @@ def preprocess(data_path=data_path,vocab_path=vocab_path,batch_size=2,q_level=3)
         drop_last=True,
         collate_fn=collate_fn
     )  
-    return dataloader,KD
+    return dataloader,KD,dict
